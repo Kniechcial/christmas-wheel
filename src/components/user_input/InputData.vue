@@ -60,7 +60,7 @@ const addPerson = () => {
 
 .input,
 .display {
-	width: fit-content; 
+	width: fit-content;
 }
 
 ul {
