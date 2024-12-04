@@ -44,23 +44,44 @@
 
 			<!-- Kontener YOUR INPUT -->
 			<div class="your-input">
-				<div class="display flex flex-column border-1 border-round p-2">
+				<div class="display flex flex-column">
 					<div class="input-description">
 						People added to the Christmas draw
+					</div>
+					<div
+						class="input-description"
+						v-if="persons.length === 0">
+						Place for Persons playing in christmas gift
+					</div>
+					<div v-if="changeText"></div>
+					<div
+						class="descriptionChangeText"
+						:class="{ visible: changeText }">
+						{{ changeText || "\u00A0" }}
 					</div>
 					<ul>
 						<li
 							class="person"
-							v-for="(person, index) in persons"
+							v-for="(person, index) in persons.slice().reverse()"
 							:key="index">
+							<span class="person-name"
+								>{{ person.id }}. {{ person.name }}</span
 							>
-							<span>{{ person.name }}</span>
-							<div class="select-details">
+							<div class="selected-details">
 								<img
 									class="person-icon"
-									src="../../assets/icon/gift.png"
-									alt="Ikona" />
-								<div class="person-colour"></div>
+									:src="person.icon"
+									alt="Person Icon"
+									@mouseover="handleChangeIconDescriptionDisplayOn(person)"
+									@mouseout="handleChangeIconDescriptionDisplayOut"
+									@click="changeIcon(person)" />
+								<div
+									class="person-colour"
+									:style="{ backgroundColor: person.color }"
+									alt="Person Color"
+									@mouseover="handleChangeColourDescriptionDisplayOn(person)"
+									@mouseout="handleChangeColourDescriptionDisplayOut"
+									@click="changeColor(person)"></div>
 							</div>
 						</li>
 					</ul>
@@ -77,15 +98,83 @@ import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 
 const persons = ref([]);
+
 let name = ref("");
 let email = ref("");
+const changeText = ref(null);
+
+const icons = import.meta.glob("../../assets//icon/*.png", { eager: true });
+const availableIcons = Object.values(icons).map((module) => module.default);
+const availableColors = ref([
+	"#FF5733",
+	"#33FF57",
+	"#3357FF",
+	"#FFC300",
+	"#C70039",
+	"#900C3F",
+	"#581845",
+	"#FF33A1",
+	"#33FFF3",
+	"#FF8C33",
+	"#A1FF33",
+	"#5733FF",
+	"#FF5733",
+	"#33A1FF",
+	"#FFD633",
+	"#33FF8C",
+	"#8C33FF",
+	"#FF33F0",
+	"#33FF33",
+	"#339FFF",
+]);
 
 const addPerson = () => {
-	const newPerson = { name: name.value, email: email.value };
-	persons.value.push(newPerson);
+	const randomIndex = Math.floor(Math.random() * availableIcons.length);
+	const randomColorIndex = Math.floor(
+		Math.random() * availableColors.value.length
+	);
+	const icon = availableIcons[randomIndex];
+	const color = availableColors.value[randomColorIndex];
 
+	const newPerson = {
+		id: persons.value.length + 1,
+		name: name.value,
+		email: email.value,
+		icon: icon,
+		color: color,
+	};
+	persons.value.push(newPerson);
 	name.value = "";
 	email.value = "";
+	availableIcons.splice(randomIndex, 1);
+	availableColors.value.splice(randomColorIndex, 1);
+};
+const changeIcon = (person) => {
+	availableIcons.push(person.icon);
+	const randomIndex = Math.floor(Math.random() * availableIcons.length);
+	const newIcon = availableIcons[randomIndex];
+	availableIcons.splice(randomIndex, 1);
+	person.icon = newIcon;
+};
+const changeColor = (person) => {
+	availableColors.value.push(person.color);
+	const randomIndex = Math.floor(Math.random() * availableColors.value.length);
+	const newColor = availableColors.value[randomIndex];
+	availableColors.value.splice(randomIndex, 1);
+	person.color = newColor;
+};
+
+const handleChangeColourDescriptionDisplayOn = () => {
+	changeText.value = "Change colour";
+};
+const handleChangeColourDescriptionDisplayOut = () => {
+	changeText.value = null;
+};
+const handleChangeIconDescriptionDisplayOn = () => {
+	changeText.value = "Change icon";
+};
+const handleChangeIconDescriptionDisplayOut = () => {
+	changeText.value = null;
 };
 </script>
 <style>
@@ -197,29 +286,48 @@ ul::-webkit-scrollbar {
 	border: solid 2px black;
 }
 .person {
-	display: flex;
+	display: grid;
+	grid-template-columns: 65% 35%;
+	padding: 0.5rem 0;
 	align-items: center;
-	gap: 3rem;
+	border-bottom: 1px solid #ddd;
+}
+
+.person-name {
+	text-align: left;
+	padding: 0.5rem;
 	font-family: "Imperial Script", cursive;
 	font-size: 22px;
-	margin-bottom: 1rem;
+	margin: 0;
 }
-.select-details {
+.selected-details {
 	display: flex;
+	padding: 0.5rem;
 	align-items: center;
-	margin-left: auto;
-	gap: 2rem;
+	justify-content: flex-start;
 }
 
 .person-icon {
 	width: 35px;
 	height: 35px;
+	cursor: pointer;
+	margin-right: 0.5rem;
 }
 
 .person-colour {
 	width: 50px;
 	height: 35px;
-	background-color: red;
+
 	border-radius: 15%;
+	cursor: pointer;
+}
+.descriptionChangeText {
+	color: red;
+	max-width: 40rem;
+	font-family: "Imperial Script", cursive;
+	font-size: 20px;
+	font-weight: 500;
+	padding-right: 3rem;
+	text-align: right;
 }
 </style>
