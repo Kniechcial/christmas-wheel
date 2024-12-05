@@ -35,8 +35,14 @@
 						<Button
 							label="Add Person"
 							severity="success"
+							:disabled="!canAddPerson"
 							@click="addPerson()"
 							rounded />
+						<p
+							v-if="persons.length === 16"
+							class="descriptionChangeText">
+							Maximum number of participants reached.
+						</p>
 					</div>
 				</div>
 			</div>
@@ -52,6 +58,11 @@
 						class="input-description"
 						v-if="persons.length === 0">
 						Place for Persons playing in christmas gift
+						<div class="gift-image">
+							<img
+								src="../../../src/assets/image/gift.png"
+								alt="Gift Image" />
+						</div>
 					</div>
 					<div v-if="changeText"></div>
 					<div
@@ -82,6 +93,12 @@
 									@mouseover="handleChangeColourDescriptionDisplayOn(person)"
 									@mouseout="handleChangeColourDescriptionDisplayOut"
 									@click="changeColor(person)"></div>
+								<button
+									class="delete-button"
+									@click="removePerson(person.id)">
+									<i class="pi pi-trash">X</i>
+									<!-- Ikona kosza -->
+								</button>
 							</div>
 						</li>
 					</ul>
@@ -93,7 +110,7 @@
 	</div>
 </template>
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 
@@ -127,6 +144,14 @@ const availableColors = ref([
 	"#33FF33",
 	"#339FFF",
 ]);
+
+const canAddPerson = computed(() => {
+	return (
+		name.value.trim() !== "" &&
+		email.value.trim() !== "" &&
+		persons.value.length < 16
+	);
+});
 
 const addPerson = () => {
 	const randomIndex = Math.floor(Math.random() * availableIcons.length);
@@ -175,6 +200,17 @@ const handleChangeIconDescriptionDisplayOn = () => {
 };
 const handleChangeIconDescriptionDisplayOut = () => {
 	changeText.value = null;
+};
+
+const removePerson = (id) => {
+	const personIndex = persons.value.findIndex((person) => person.id === id);
+	if (personIndex !== -1) {
+		// Przywracamy usunięte ikony i kolory do puli
+		availableIcons.push(persons.value[personIndex].icon);
+		availableColors.value.push(persons.value[personIndex].color);
+		// Usuwamy osobę z listy
+		persons.value.splice(personIndex, 1);
+	}
 };
 </script>
 <style>
@@ -287,7 +323,7 @@ ul::-webkit-scrollbar {
 }
 .person {
 	display: grid;
-	grid-template-columns: 65% 35%;
+	grid-template-columns: 60% 40%;
 	padding: 0.5rem 0;
 	align-items: center;
 	border-bottom: 1px solid #ddd;
@@ -317,7 +353,6 @@ ul::-webkit-scrollbar {
 .person-colour {
 	width: 50px;
 	height: 35px;
-
 	border-radius: 15%;
 	cursor: pointer;
 }
@@ -329,5 +364,36 @@ ul::-webkit-scrollbar {
 	font-weight: 500;
 	padding-right: 3rem;
 	text-align: right;
+}
+
+.delete-button {
+	background: none;
+	border: none;
+
+	font-weight: 800;
+	color: #f44336;
+	cursor: pointer;
+	width: 50px;
+	height: 35px;
+}
+
+.delete-button:hover {
+	color: #d32f2f;
+	scale: 1.2;
+}
+.gift-image {
+	position: absolute;
+	right: 0;
+	width: 10rem;
+	height: 10rem;
+	z-index: 0;
+	overflow: hidden;
+}
+
+.gift-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0.8;
 }
 </style>
