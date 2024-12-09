@@ -1,5 +1,5 @@
 <template>
-	<div class="main-container sky">
+	<div class="main-container">
 		<div class="description">
 			<h1>Opis działania aplikacji</h1>
 			<h4>
@@ -97,27 +97,87 @@
 									class="delete-button"
 									@click="removePerson(person.id)">
 									<i class="pi pi-trash">X</i>
-									<!-- Ikona kosza -->
 								</button>
 							</div>
 						</li>
 					</ul>
 				</div>
 			</div>
+			<!-- Kontener INPUT ADDITIONAL DATA -->
+			<div class="input-data-2 blob-2">
+				<div class="flex flex-column">
+					<div>
+						<div class="input-description">Add more information</div>
+						<div class="card flex align-items-center mb-3">
+							<p class="input-font flex mr-3">Data:</p>
+							<InputText
+								label="Input Name"
+								type="text"
+								v-model="data" />
+						</div>
+						<div class="card flex align-items-center mb-3">
+							<p class="input-font flex mr-3">Maximum gift cost:</p>
+							<InputText
+								type="number"
+								v-model="cost" />
+						</div>
+						<div class="card flex justify-center">
+							<div>Do you want add welcome message?</div>
+							<div class="flex flex-wrap gap-4">
+								<div class="flex items-center gap-2">
+									<RadioButton
+										v-model="addMessage"
+										:value="true" />
+									<label for="Option1">Yes</label>
+								</div>
+								<div class="flex items-center gap-2">
+									<RadioButton
+										v-model="addMessage"
+										:value="false" />
+									<label for="Option2">No, use default</label>
+								</div>
+							</div>
+						</div>
+						<div>
+							<div v-if="addMessage">
+								<Textarea
+									placeholder="Enter a welcome message for everyone..."
+									v-model="welcomeMessage"
+									rows="5"
+									cols="34" />
+							</div>
+							<div
+								v-if="!addMessage"
+								class="defaultMessage">
+								Message to users
+							</div>
+						</div>
+						<Button
+							label="Confirm and send link"
+							severity="success"
+							@click="createEvent()"
+							rounded />
+					</div>
+				</div>
+			</div>
 		</div>
-
-		<div class="confirm">Confirm</div>
 	</div>
 </template>
 <script setup>
 import { computed, ref } from "vue";
 import InputText from "primevue/inputtext";
+import Textarea from "primevue/textarea";
 import Button from "primevue/button";
+import RadioButton from "primevue/radiobutton";
 
 const persons = ref([]);
 
 let name = ref("");
 let email = ref("");
+let data = ref("");
+let cost = ref("");
+let welcomeMessage = ref("");
+let addMessage = ref("");
 const changeText = ref(null);
 
 const icons = import.meta.glob("../../assets//icon/*.png", { eager: true });
@@ -205,12 +265,26 @@ const handleChangeIconDescriptionDisplayOut = () => {
 const removePerson = (id) => {
 	const personIndex = persons.value.findIndex((person) => person.id === id);
 	if (personIndex !== -1) {
-		// Przywracamy usunięte ikony i kolory do puli
 		availableIcons.push(persons.value[personIndex].icon);
 		availableColors.value.push(persons.value[personIndex].color);
-		// Usuwamy osobę z listy
+
 		persons.value.splice(personIndex, 1);
 	}
+};
+const createEvent = () => {
+	let messageToUsers = ref("");
+	if (!addMessage) {
+		messageToUsers = welcomeMessage;
+	} else {
+		messageToUsers = defaultMessageToUsers;
+	}
+	const newEvent = {
+		persons: persons,
+		cost: cost,
+		date: data,
+		welcomeMessage: messageToUsers,
+	};
+	console.log(newEvent);
 };
 </script>
 <style>
@@ -220,14 +294,6 @@ const removePerson = (id) => {
 	align-items: center;
 	gap: 60px;
 }
-.sky {
-	position: relative;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-	background: linear-gradient(to bottom, #0d1b2a, #1b263b, #415a77, #778da9);
-}
-
 .description {
 	text-align: center;
 }
@@ -246,6 +312,14 @@ const removePerson = (id) => {
 	margin-left: 1rem;
 	grid-column: 1;
 	height: 30rem;
+	width: 40rem;
+	border: solid 2px black;
+}
+.input-data-2 {
+	margin-left: 1rem;
+	grid-column: 1;
+	grid-row: 3;
+	height: 35rem;
 	width: 40rem;
 	border: solid 2px black;
 }
@@ -312,6 +386,15 @@ ul::-webkit-scrollbar {
 	display: flex;
 	padding: 6rem;
 	border-radius: 46% 54% 64% 36% / 61% 44% 56% 39%;
+	align-items: center;
+	overflow: hidden;
+	background: #f8f9fa;
+	box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+.blob-2 {
+	display: flex;
+	padding: 6rem;
+	border-radius: 55% 54% 76% 36% / 71% 44% 69% 45%;
 	align-items: center;
 	overflow: hidden;
 	background: #f8f9fa;
@@ -395,5 +478,13 @@ ul::-webkit-scrollbar {
 	height: 100%;
 	object-fit: cover;
 	opacity: 0.8;
+}
+.defaultMessage {
+	font-family: "Imperial Script", cursive;
+	padding-top: 1rem;
+	padding-bottom: 0.5rem;
+	font-size: 20px;
+	width: 400px;
+	height: 120px;
 }
 </style>
