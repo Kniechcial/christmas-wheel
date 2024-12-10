@@ -1,18 +1,5 @@
 <template>
 	<div class="main-container">
-		<div class="description">
-			<h1>Opis działania aplikacji</h1>
-			<h4>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis mollitia
-				reprehenderit quod voluptas? Dicta voluptatem eveniet, fuga incidunt
-				placeat reiciendis inventore a porro quia perspiciatis, expedita sunt
-				dignissimos consectetur aspernatur! Lorem ipsum dolor sit, amet
-				consectetur adipisicing elit. Qui quam aut a rerum dolorem quae, dolore
-				veritatis earum placeat adipisci labore vero tenetur necessitatibus
-				mollitia perspiciatis! Harum debitis voluptate ea!
-			</h4>
-		</div>
-
 		<div class="content">
 			<!-- Kontener INPUT DATA -->
 			<div class="input-data blob">
@@ -109,21 +96,21 @@
 					<div>
 						<div class="input-description">Add more information</div>
 						<div class="card flex align-items-center mb-3">
-							<p class="input-font flex mr-3">Data:</p>
+							<p class="input-font flex mr-3">Date:</p>
 							<InputText
 								label="Input Name"
 								type="text"
-								v-model="data" />
+								v-model="userDate" />
 						</div>
 						<div class="card flex align-items-center mb-3">
-							<p class="input-font flex mr-3">Maximum gift cost:</p>
+							<p class="input-font flex mr-3">Gift price:</p>
 							<InputText
 								type="number"
-								v-model="cost" />
+								v-model="userPrice" />
 						</div>
 						<div class="card flex justify-center">
-							<div>Do you want add welcome message?</div>
-							<div class="flex flex-wrap gap-4">
+							<div>Do you want add Your own welcome message?</div>
+							<div class="flex items-center gap-4">
 								<div class="flex items-center gap-2">
 									<RadioButton
 										v-model="addMessage"
@@ -142,19 +129,20 @@
 							<div v-if="addMessage">
 								<Textarea
 									placeholder="Enter a welcome message for everyone..."
-									v-model="welcomeMessage"
+									v-model="userMessage"
 									rows="5"
 									cols="34" />
 							</div>
 							<div
 								v-if="!addMessage"
 								class="defaultMessage">
-								Message to users
+								{{ dynamicMessage }}
 							</div>
 						</div>
 						<Button
 							label="Confirm and send link"
 							severity="success"
+							:disabled="!isButtonEnabled"
 							@click="createEvent()"
 							rounded />
 					</div>
@@ -174,9 +162,10 @@ const persons = ref([]);
 
 let name = ref("");
 let email = ref("");
-let data = ref("");
-let cost = ref("");
+let userDate = ref("");
+let userPrice = ref("");
 let welcomeMessage = ref("");
+let userMessage = ref("");
 let addMessage = ref("");
 const changeText = ref(null);
 
@@ -204,6 +193,19 @@ const availableColors = ref([
 	"#33FF33",
 	"#339FFF",
 ]);
+
+const dynamicMessage = computed(() => {
+	const date = userDate.value || "12.12";
+	const price = userPrice.value || "100";
+	return `Hello! Christmas is fast approaching, so we have prepared a draw. I hope you will be happy with the people you will draw to whom you will give a Christmas present. We will give gifts for ${date}, and the minimum amount we will spend on a gift is ${price} pln. Have fun and see you soon :)`;
+});
+const setWelcomeMessage = () => {
+	if (userMessage.value && addMessage.value) {
+		welcomeMessage.value = userMessage.value;
+	} else {
+		welcomeMessage.value = dynamicMessage.value;
+	}
+};
 
 const canAddPerson = computed(() => {
 	return (
@@ -270,22 +272,32 @@ const removePerson = (id) => {
 
 		persons.value.splice(personIndex, 1);
 	}
+	persons.value.forEach((person, index) => {
+		person.id = index + 1;
+	});
 };
 const createEvent = () => {
-	let messageToUsers = ref("");
-	if (!addMessage) {
-		messageToUsers = welcomeMessage;
-	} else {
-		messageToUsers = defaultMessageToUsers;
-	}
+	setWelcomeMessage();
 	const newEvent = {
 		persons: persons,
-		cost: cost,
-		date: data,
-		welcomeMessage: messageToUsers,
+		welcomeMessage: welcomeMessage,
+		...(!addMessage && userPrice.value && { cost: userPrice.value }),
+		...(!addMessage && userDate.value && { date: userDate.value }),
 	};
 	console.log(newEvent);
 };
+
+const isButtonEnabled = computed(() => {
+	if (persons.value.length < 3) {
+		return false;
+	}
+
+	if (addMessage.value) {
+		return userMessage.value.trim().length > 50;
+	}
+
+	return userDate.value.trim().length > 0 && userPrice.value.trim().length > 0;
+});
 </script>
 <style>
 .main-container {
@@ -331,7 +343,7 @@ const createEvent = () => {
 	font-family: "Imperial Script", cursive;
 	font-size: 40px;
 	font-weight: 400;
-	padding: 0.5rem;
+	/* padding: 0.5rem; */
 	margin-bottom: 0.5rem;
 }
 .input-font {
@@ -342,7 +354,7 @@ const createEvent = () => {
 }
 
 .your-input {
-	transform: translateY(-5rem);
+	/* transform: translateY(-5rem); */
 	height: 30rem;
 	width: 40rem;
 	grid-column: 3;
@@ -485,6 +497,6 @@ ul::-webkit-scrollbar {
 	padding-bottom: 0.5rem;
 	font-size: 20px;
 	width: 400px;
-	height: 120px;
+	height: 140px;
 }
 </style>
