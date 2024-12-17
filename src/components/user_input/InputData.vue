@@ -8,22 +8,24 @@
 						<div class="sticky-header">Add participants to the draw</div>
 						<div
 							class="card flex justify-content-between align-items-center gap-3">
-							<div class="card flex align-items-center mb-3 input-field">
+							<div class="card flex align-items-center mb-3 input-box">
 								<p class="label-font mr-3">Name:</p>
 								<InputText
+									class="input-field"
 									label="Input Name"
 									type="text"
 									v-model="name" />
 							</div>
-							<div class="card flex align-items-center mb-3 input-field">
+							<div class="card flex align-items-center mb-3 input-box">
 								<p class="label-font mr-3">Email:</p>
 								<InputText
+									class="input-field"
 									type="text"
 									v-model="email" />
 							</div>
 						</div>
 						<div
-							class="card flex justify-content-between align-items-center input-field">
+							class="card flex justify-content-between align-items-center input-box">
 							<Button
 								label="Add Person"
 								severity="success"
@@ -56,10 +58,12 @@
 							alt="Gift Image" />
 					</div>
 				</div>
-				<div
-					class="description"
-					v-if="changeText">
-					{{ changeText || "\u00A0" }}
+				<div class="description-container">
+					<div
+						class="description"
+						:class="{ visible: changeText }">
+						{{ changeText || "\u00A0" }}
+					</div>
 				</div>
 				<ul>
 					<li
@@ -100,12 +104,13 @@
 					<div>
 						<div class="sticky-header">Add more information</div>
 						<div class="card flex align-items-center mb-3">
-							<p class="label-font mr-3">Date:</p>
-							<InputText
+							<p class="label-font mr-3">Pick date:</p>
+							<input
+								type="date"
 								class="input-field"
-								label="Input Name"
-								type="text"
-								v-model="userDate" />
+								v-model="userDate"
+								:min="minDate"
+								:max="maxDate" />
 						</div>
 						<div class="card flex align-items-center mb-3">
 							<p class="label-font mr-3">Gift price:</p>
@@ -159,7 +164,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
 import Button from "primevue/button";
@@ -174,7 +179,15 @@ let userPrice = ref("");
 let welcomeMessage = ref("");
 let userMessage = ref("");
 let addMessage = ref("");
+const minDate = ref("");
+const maxDate = ref("");
 const changeText = ref(null);
+
+onMounted(() => {
+	const year = new Date().getFullYear();
+	minDate.value = `${year}-12-01`;
+	maxDate.value = `${year}-12-31`;
+});
 
 const icons = import.meta.glob("../../assets//icon/*.png", { eager: true });
 const availableIcons = Object.values(icons).map((module) => module.default);
@@ -307,14 +320,12 @@ const isButtonEnabled = computed(() => {
 });
 </script>
 <style style lang="scss">
-// Zmienne dla powtarzających się wartości
 $font-primary: "Imperial Script", cursive;
 $bg-color: #f8f9fa;
 $border-color: black;
 $shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 $highlight-color: #f44336;
 
-// Mixin dla powtarzających się stylów
 @mixin flex-center($direction: row) {
 	display: flex;
 	flex-direction: $direction;
@@ -370,9 +381,20 @@ $highlight-color: #f44336;
 				text-align: right;
 			}
 			.input-field {
+				border-radius: 4px;
+				box-shadow: $shadow;
+				border: 1px solid $border-color;
+				max-width: 350px;
+				width: 100%;
+				padding: 1rem;
+				height: 2.5rem;
+				font-size: 15px;
+			}
+			.input-box {
 				flex-direction: column;
 				max-width: 400px;
 				box-sizing: border-box;
+				padding: 1rem;
 			}
 		}
 		.additional-info {
@@ -391,6 +413,25 @@ $highlight-color: #f44336;
 			display: flex;
 			flex-direction: column;
 			font-family: $font-primary;
+
+			.description-container {
+				min-height: 20px;
+				height: auto;
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.description {
+				font-family: $font-primary;
+				color: red;
+				font-size: 24px;
+				padding-top: 1rem;
+				visibility: hidden;
+			}
+
+			.description.visible {
+				visibility: visible;
+			}
 
 			ul {
 				max-height: 11rem;
